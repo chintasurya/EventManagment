@@ -1,0 +1,107 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Bring your own payment gateway</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;height:1000px;font-family:Arial,"Liberation Sans",sans-serif;background:#fff;color:#14212b;position:relative}
+h1{position:absolute;left:40px;top:28px;font-size:30px}
+.sub{position:absolute;left:40px;top:70px;font-size:16px;color:#55616b}
+.box{position:absolute;border-radius:10px;border:2px solid #c9d1d8;background:#f5f7f9;padding:10px 14px}
+.box b{display:block;font-size:16px;margin-bottom:4px}
+.box span{font-size:13px;color:#4a5560;line-height:1.35}
+.zone{position:absolute;border-radius:16px}
+.zl{position:absolute;font-size:12px;font-weight:700;letter-spacing:2px}
+.sf{border:2px solid #0b7fa3;background:rgba(0,169,192,.05)}
+.card{border:2px dashed #c8005a;background:rgba(255,0,104,.03)}
+.core{border-color:#0b7fa3;background:#fff}
+.adapter{border-color:#45289f;background:#fff}
+.adapter.custom{border-style:dashed;background:#faf8ff}
+.gw{border-color:#c8005a;background:#fff}
+.cfg{background:#fff8e0;border-color:#d9b200}
+.num{display:inline-flex;width:24px;height:24px;border-radius:50%;background:#14212b;color:#fff;font-size:13px;font-weight:700;align-items:center;justify-content:center;margin-right:8px;flex:none}
+.flow{position:absolute;left:40px;top:860px;width:1520px;display:flex;gap:14px}
+.step{flex:1;display:flex;align-items:flex-start;font-size:13.5px;line-height:1.35;color:#2a3540;background:#f5f7f9;border-radius:10px;padding:10px 12px}
+.methods{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
+.methods i{font-style:normal;font-size:12px;font-weight:700;color:#0b7fa3;background:#e3f4f8;border-radius:10px;padding:3px 8px}
+svg{position:absolute;left:0;top:0}
+.lbl{position:absolute;font-size:12px;font-weight:700;color:#55616b;background:#fff;padding:0 4px}
+</style></head><body>
+<h1>Bring your own payment gateway: plug-in design</h1>
+<div class="sub">One standard payment contract inside Salesforce, one adapter per gateway. The customer picks the gateway in settings, with no code changes.</div>
+
+<!-- zones -->
+<div class="zone sf" style="left:290px;top:110px;width:800px;height:730px"></div>
+<div class="zl" style="left:310px;top:120px;color:#0b7fa3">SALESFORCE</div>
+<div class="zone card" style="left:1130px;top:110px;width:430px;height:730px"></div>
+<div class="zl" style="left:1150px;top:120px;color:#c8005a">CARD DATA ZONE: GATEWAY ONLY (PCI)</div>
+
+<!-- attendee side -->
+<div class="box" style="left:40px;top:160px;width:210px;height:80px"><b>Attendee</b><span>Picks an event and clicks Pay now</span></div>
+<div class="box core" style="left:40px;top:300px;width:210px;height:100px"><b>Registration site</b><span>Experience Cloud checkout page. Free events skip payment.</span></div>
+
+<!-- salesforce core -->
+<div class="box core" style="left:320px;top:160px;width:330px;height:80px"><b>Registration service</b><span>Pending registration, seat hold, duplicate check</span></div>
+<div class="box core" style="left:320px;top:290px;width:330px;height:190px"><b>Payment service: standard contract</b><span>Every gateway adapter must support the same actions:</span>
+ <div class="methods"><i>Create payment</i><i>Handle webhook</i><i>Refund</i><i>Cancel</i><i>Check status</i></div>
+ <span style="display:block;margin-top:8px">Uses a unique payment reference, so a retry never creates two registrations.</span></div>
+<div class="box core" style="left:320px;top:520px;width:330px;height:90px"><b>Gateway router</b><span>Picks the gateway for this event or business unit from settings</span></div>
+<div class="box cfg" style="left:320px;top:640px;width:160px;height:180px"><b>Settings</b><span>Custom Metadata: gateway per event or department, currency, refund rules</span></div>
+<div class="box cfg" style="left:490px;top:640px;width:160px;height:180px"><b>Secure keys</b><span>Named Credentials hold each gateway's API keys. Never in code.</span></div>
+<div class="box core" style="left:700px;top:640px;width:360px;height:180px"><b>Payment record</b><span>Token, last 4 digits, amount, status, gateway name. No card number, CVV or expiry. Feeds receipts, refunds and the daily reconciliation report.</span></div>
+
+<!-- adapters -->
+<div class="box adapter" style="left:740px;top:150px;width:320px;height:70px"><b>Chase adapter</b><span>Hosted payment page</span></div>
+<div class="box adapter" style="left:740px;top:240px;width:320px;height:70px"><b>Stripe adapter</b><span>Stripe Checkout</span></div>
+<div class="box adapter" style="left:740px;top:330px;width:320px;height:70px"><b>Authorize.net adapter</b><span>Accept Hosted</span></div>
+<div class="box adapter" style="left:740px;top:420px;width:320px;height:70px"><b>PayPal adapter</b><span>PayPal Checkout</span></div>
+<div class="box adapter custom" style="left:740px;top:510px;width:320px;height:90px"><b>Custom adapter</b><span>Built by the customer's developer against the same contract, for any other gateway</span></div>
+
+<!-- gateways -->
+<div class="box gw" style="left:1180px;top:150px;width:340px;height:70px"><b>Chase</b><span>Card typed on Chase's page</span></div>
+<div class="box gw" style="left:1180px;top:240px;width:340px;height:70px"><b>Stripe</b><span>Card typed on Stripe's page</span></div>
+<div class="box gw" style="left:1180px;top:330px;width:340px;height:70px"><b>Authorize.net</b><span>Card typed on Authorize.net's page</span></div>
+<div class="box gw" style="left:1180px;top:420px;width:340px;height:70px"><b>PayPal</b><span>PayPal account or card</span></div>
+<div class="box gw" style="left:1180px;top:520px;width:340px;height:70px;border-style:dashed"><b>Any other gateway</b><span>Adyen, Square, a local bank...</span></div>
+<div class="box" style="left:1180px;top:640px;width:340px;height:180px;background:#fff0f5;border-color:#c8005a"><b>Signed webhook back to Salesforce</b><span>After payment, the gateway sends a signed "payment approved" message. The matching adapter verifies the signature, then the payment record is saved and the registration confirmed.</span></div>
+
+<svg width="1600" height="1000">
+ <defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#14212b"/></marker>
+  <marker id="p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#45289f"/></marker>
+  <marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c8005a"/></marker>
+ </defs>
+ <g stroke="#14212b" stroke-width="2" fill="none">
+  <line x1="145" y1="240" x2="145" y2="296" marker-end="url(#a)"/>
+  <line x1="250" y1="340" x2="316" y2="210" marker-end="url(#a)"/>
+  <line x1="485" y1="240" x2="485" y2="286" marker-end="url(#a)"/>
+  <line x1="485" y1="480" x2="485" y2="516" marker-end="url(#a)"/>
+  <line x1="485" y1="610" x2="485" y2="636" marker-end="url(#a)"/>
+ </g>
+ <g stroke="#45289f" stroke-width="1.6" fill="none">
+  <path d="M650,565 C700,565 690,185 736,185" marker-end="url(#p)"/>
+  <path d="M650,565 C700,565 690,275 736,275" marker-end="url(#p)"/>
+  <path d="M650,565 C700,565 690,365 736,365" marker-end="url(#p)"/>
+  <path d="M650,565 C700,565 690,455 736,455" marker-end="url(#p)"/>
+  <path d="M650,565 C700,565 700,555 736,555" marker-end="url(#p)" stroke-dasharray="5 4"/>
+ </g>
+ <g stroke="#c8005a" stroke-width="1.6" fill="none">
+  <line x1="1060" y1="185" x2="1176" y2="185" marker-end="url(#m)" marker-start="url(#m)"/>
+  <line x1="1060" y1="275" x2="1176" y2="275" marker-end="url(#m)" marker-start="url(#m)"/>
+  <line x1="1060" y1="365" x2="1176" y2="365" marker-end="url(#m)" marker-start="url(#m)"/>
+  <line x1="1060" y1="455" x2="1176" y2="455" marker-end="url(#m)" marker-start="url(#m)"/>
+  <line x1="1060" y1="555" x2="1176" y2="555" marker-end="url(#m)" marker-start="url(#m)" stroke-dasharray="5 4"/>
+  <path d="M1180,730 C1110,730 1110,730 1064,730" marker-end="url(#m)"/>
+ </g>
+</svg>
+<div class="lbl" style="left:255px;top:262px">Pay now</div>
+<div class="lbl" style="left:660px;top:600px;color:#45289f">routes to the chosen adapter</div>
+<div class="lbl" style="left:1078px;top:163px;color:#c8005a">session</div>
+<div class="lbl" style="left:1082px;top:708px;color:#c8005a">webhook</div>
+
+<div class="flow">
+ <div class="step"><span class="num">1</span>Attendee clicks Pay now; Salesforce holds the seat</div>
+ <div class="step"><span class="num">2</span>Router picks the gateway from settings; its adapter creates a payment session</div>
+ <div class="step"><span class="num">3</span>Attendee pays on the gateway's own page; card data stays there</div>
+ <div class="step"><span class="num">4</span>Gateway sends a signed webhook; the adapter verifies it</div>
+ <div class="step"><span class="num">5</span>Payment record saved, registration confirmed, email sent. Refunds take the same path back.</div>
+</div>
+</body></html>

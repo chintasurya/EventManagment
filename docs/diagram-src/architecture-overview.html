@@ -1,0 +1,109 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Event Management: architecture overview</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1800px;height:1000px;font-family:Arial,"Liberation Sans",sans-serif;background:#fff;color:#14212b;padding:28px 36px}
+h1{font-size:30px}
+.sub{font-size:15px;color:#55616b;margin:6px 0 16px}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:2px;color:#c8005a;border:1.5px solid #c8005a;border-radius:10px;padding:2px 8px;margin-left:10px;vertical-align:middle}
+.wrap{display:grid;grid-template-columns:1fr 250px;gap:16px}
+.band{border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.bl{font-size:12px;font-weight:700;letter-spacing:2px;margin-bottom:8px}
+.row{display:grid;gap:10px}
+.b{border-radius:9px;border:1.8px solid #c9d1d8;background:#fff;padding:8px 11px}
+.b b{display:block;font-size:14.5px;margin-bottom:3px}
+.b span{font-size:12px;color:#4a5560;line-height:1.35;display:block}
+.ch{background:#f1f6fb;border:2px solid #9fb6cc}.ch .bl{color:#3c5a76}
+.edge{background:#f5f5f7;border:2px dashed #a0a0a8;padding:8px 14px}.edge .bl{color:#55616b;margin:0}
+.sf{background:rgba(0,169,192,.05);border:2.5px solid #0b7fa3}.sf>.bl{color:#0b7fa3}
+.col{border-radius:11px;padding:10px;background:#fff;border:1.5px solid #cfe6ee}
+.col h3{font-size:13px;letter-spacing:1.5px;color:#0b7fa3;margin-bottom:8px}
+.svc{border-color:#0b7fa3}
+.lwc{border-color:#2f6fb3}
+.obj{border-color:#45289f}
+.auto{border-color:#d9b200;background:#fffbea}
+.cfg{border-color:#d9b200;background:#fffbea}
+.ai{border-color:#c8005a;background:#fff3f8}
+.ext{background:#fff5f9;border:2px solid #c8005a}.ext .bl{color:#c8005a}
+.x{border-color:#c8005a}
+.side{background:#f6f4fc;border:2px solid #45289f;border-radius:14px;padding:12px 14px}
+.side .bl{color:#45289f}
+.side .b{border-color:#b8acdf;margin-bottom:8px}
+.arrow{text-align:center;font-size:18px;color:#55616b;line-height:14px;margin:-4px 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chips i{font-style:normal;font-size:11px;font-weight:700;color:#45289f;background:#efeafd;border-radius:9px;padding:2px 7px}
+.chips.p i{color:#c8005a;background:#fde6ef}
+.legend{display:flex;gap:18px;font-size:12px;color:#55616b;margin-top:6px}
+.legend span:before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px;background:var(--c)}
+</style></head><body>
+<h1>Event Management on Salesforce: architecture overview <span class="tag">PREVIEW v0.1</span></h1>
+<div class="sub">Salesforce-native event, class and conference management with bring-your-own payment gateway and virtual meeting provider. Optional AI layer.</div>
+<div class="wrap">
+ <div>
+  <div class="band ch"><div class="bl">1 · CHANNELS</div>
+   <div class="row" style="grid-template-columns:repeat(5,1fr)">
+    <div class="b"><b>Public website</b><span>Any CMS (Sitecore, WordPress). Lists events from the catalog API or embeds components</span></div>
+    <div class="b"><b>Registration site</b><span>Experience Cloud (LWR). Browse, pick sessions, pay, manage booking. No login needed</span></div>
+    <div class="b"><b>Staff console</b><span>Lightning app for organizers: events, sessions, capacity, registrations, refunds</span></div>
+    <div class="b"><b>Email and calendar</b><span>Confirmations, reminders, secure manage-booking links, .ics invites</span></div>
+    <div class="b"><b>AI assistant (optional)</b><span>Web chat that answers questions and registers people</span></div>
+   </div></div>
+  <div class="arrow">&#8595;</div>
+  <div class="band edge"><div class="bl">2 · EDGE: CDN, web application firewall, rate limits, bot protection, optional waiting room for high-demand launches</div></div>
+  <div class="arrow">&#8595;</div>
+  <div class="band sf"><div class="bl">3 · SALESFORCE ORG: MANAGED PACKAGE (OWN NAMESPACE)</div>
+   <div class="row" style="grid-template-columns:1fr 1.15fr 1fr">
+    <div class="col"><h3>EXPERIENCE LAYER (LWC)</h3>
+     <div class="row" style="grid-template-columns:1fr 1fr">
+      <div class="b lwc"><b>Event catalog</b><span>Search, filters, seats left</span></div>
+      <div class="b lwc"><b>Event details</b><span>Agenda, speakers, tickets</span></div>
+      <div class="b lwc"><b>Session picker</b><span>My Agenda, clash checks</span></div>
+      <div class="b lwc"><b>Checkout</b><span>Attendee info, custom questions, pay or free</span></div>
+      <div class="b lwc"><b>Manage booking</b><span>Change or cancel via secure link</span></div>
+      <div class="b lwc"><b>Waitlist form</b><span>Notify me when seats open</span></div>
+     </div></div>
+    <div class="col"><h3>CORE SERVICES (APEX)</h3>
+     <div class="row" style="grid-template-columns:1fr 1fr">
+      <div class="b svc"><b>Catalog service</b><span>Published events, sessions, availability</span></div>
+      <div class="b svc"><b>Registration service</b><span>Seat holds, capacity, duplicate checks</span></div>
+      <div class="b svc"><b>Payment service</b><span>Standard contract, gateway router, adapters</span></div>
+      <div class="b svc"><b>Waitlist service</b><span>Queue, priority invites, seat release</span></div>
+      <div class="b svc"><b>Notification service</b><span>Templates, email limits, .ics files</span></div>
+      <div class="b svc"><b>Virtual meeting service</b><span>Provider adapters, join links</span></div>
+     </div></div>
+    <div class="col"><h3>DATA MODEL</h3>
+     <div class="b obj"><b>Event and agenda</b><div class="chips"><i>Event</i><i>Event Series</i><i>Session</i><i>Track</i><i>Venue / Room</i><i>Speaker</i><i>Session Speaker</i></div></div>
+     <div class="b obj" style="margin-top:8px"><b>Booking</b><div class="chips"><i>Ticket Type</i><i>Registration</i><i>Session Registration</i><i>Seat Hold</i><i>Waitlist Entry</i><i>Custom Question</i><i>Answer</i></div></div>
+     <div class="b obj" style="margin-top:8px"><b>Money</b><div class="chips"><i>Payment</i><i>Refund</i><i>Promo Code</i></div></div>
+     <div class="b obj" style="margin-top:8px"><b>People</b><span>Contact or Person Account (Health Cloud, Sales Cloud), matched to avoid duplicates</span></div>
+    </div>
+   </div>
+   <div class="row" style="grid-template-columns:1fr 1fr 1fr;margin-top:10px">
+    <div class="b auto"><b>Automation</b><span>Flows: confirm, cancel, refund (configurable). Platform Events: Registration Confirmed, Payment Succeeded, Seat Released. Scheduled jobs: expire holds, reminders</span></div>
+    <div class="b cfg"><b>Configuration</b><span>Custom Metadata: gateways, meeting providers, refund policies, email templates, limits. Named and External Credentials for keys. Permission sets per persona</span></div>
+    <div class="b ai"><b>AI layer (optional, Agentforce)</b><span>Draft event pages and emails, registration assistant, session recommendations, survey summaries, no-show prediction. Runs inside guardrails</span></div>
+   </div>
+  </div>
+  <div class="arrow">&#8597;</div>
+  <div class="band ext"><div class="bl">4 · EXTERNAL SERVICES (BRING YOUR OWN, VIA ADAPTERS)</div>
+   <div class="row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="b x"><b>Payment gateways</b><span>Hosted payment pages; signed webhooks back</span><div class="chips p"><i>Chase</i><i>Stripe</i><i>Authorize.net</i><i>PayPal</i><i>Custom</i></div></div>
+    <div class="b x"><b>Virtual meetings</b><span>Create session, register attendee, personal join link</span><div class="chips p"><i>Zoom</i><i>Teams</i><i>Webex</i><i>Existing link</i></div></div>
+    <div class="b x"><b>Email delivery</b><span>Salesforce email by default; Marketing Cloud connector optional for journeys and SMS</span></div>
+    <div class="b x"><b>Analytics (optional)</b><span>Reports and dashboards in Salesforce; CRM Analytics or Tableau for deeper insight</span></div>
+   </div></div>
+ </div>
+ <div class="side"><div class="bl">SECURITY AND OPERATIONS</div>
+  <div class="b"><b>Card data never stored</b><span>Gateway hosted pages; only token, last 4, amount</span></div>
+  <div class="b"><b>Guest user hardening</b><span>Minimal object access; all writes through validated Apex</span></div>
+  <div class="b"><b>Signed webhooks</b><span>Signature and replay checks per adapter</span></div>
+  <div class="b"><b>Duplicate-safe writes</b><span>Unique keys per payment and per attendee and event</span></div>
+  <div class="b"><b>Secure booking links</b><span>One-time tokens instead of email lookups</span></div>
+  <div class="b"><b>Encryption (optional)</b><span>Shield Platform Encryption and Field Audit Trail</span></div>
+  <div class="b"><b>Limits awareness</b><span>Email daily limits, governor limits, async processing</span></div>
+  <div class="b"><b>Logging and monitoring</b><span>Error log object, alerts, daily payment reconciliation</span></div>
+  <div class="b"><b>Packaging and CI</b><span>Second-generation managed package, scratch orgs, tests on every change</span></div>
+ </div>
+</div>
+<div class="legend"><span style="--c:#9fb6cc">Channels</span><span style="--c:#0b7fa3">Salesforce package</span><span style="--c:#45289f">Data model</span><span style="--c:#d9b200">Automation and config</span><span style="--c:#c8005a">External and AI</span></div>
+</body></html>
